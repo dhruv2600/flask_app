@@ -1,0 +1,15 @@
+artifact_uri: file:///C:/Projects/Flask-app/api/mlruns/0/7f6b40cf83f340deabfd83c4ab3ca44e/artifacts
+end_time: 1628683566261
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+name: ''
+run_id: 7f6b40cf83f340deabfd83c4ab3ca44e
+run_uuid: 7f6b40cf83f340deabfd83c4ab3ca44e
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1628683408776
+status: 3
+tags: []
+user_id: Asus
