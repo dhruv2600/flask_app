@@ -5,7 +5,11 @@ import os
 import logging
 import json
 from flask_cors import CORS
+
 from haystack.document_store.elasticsearch import ElasticsearchDocumentStore
+
+
+
 from haystack.retriever.dense import DensePassageRetriever
 from haystack.reader.farm import FARMReader
 from transformers import AutoModelForQuestionAnswering, AutoTokenizer, pipeline
@@ -29,7 +33,7 @@ from bson.objectid import ObjectId
 
 # test to insert data to the data base
 app = flask.Flask(__name__)
-app.run(debug=True)
+
 
 
 app.config["MONGO_URI"] = 'mongodb+srv://RithvikS:capstone123@cluster0.m8kbi.mongodb.net/myFirstDatabase?retryWrites=true'
@@ -42,9 +46,10 @@ papercollection =mongo.db['paper']
 
 @app.route("/test")
 def test():
-    examid=req.form['examid']
+    examid=request.form['examid']
+    index=request.form['index']
     objInstance = ObjectId(examid)
-    c = collection.find({'title': objInstance})
+    c = collection.find({'_id': objInstance})
     questionsobj = c.next()['questions']
     length = len(questionsobj)
     dict = {}
@@ -52,12 +57,12 @@ def test():
         dict[questionsobj[i]['qname']] = 'fill me'
 
     for key, value in dict.items():
-        dict[key] = get_answer_trial(key, value)
+        dict[key] = get_answer_trial(key, index)
 
     for i in range(length):
         questionsobj[i]['right_answers'] = dict[questionsobj[i]['qname']]
 
-    collection.update_one({'title': "hello!!"}, {
+    collection.update_one({'_id':objInstance}, {
         "$set": {"questions": questionsobj}
     })
 
@@ -174,41 +179,8 @@ def get_ans():
     index = request.form['index']
     print(question)
     print(index)
-
-    doc_store = ElasticsearchDocumentStore(
-        host='localhost',
-        username='', password='',
-        index=index
-    )
-
-    retriever = TfidfRetriever(document_store=doc_store)
-
-    print("docs retrieved")
-
-    # initialization of the Haystack Elasticsearch document storage
-
-    # using pretrain model
-    reader = FARMReader(model_name_or_path="deepset/roberta-base-squad2",
-                        use_gpu=True, no_ans_boost=-10, context_window_size=500,
-                        top_k_per_candidate=3, top_k_per_sample=1,
-                        num_processes=8, max_seq_len=256, doc_stride=128)
-
-    print("reader initialized successfully")
-
-    # initialization of ElasticRetriever
-
-    # Finder sticks together reader and retriever
-    # in a pipeline to answer our actual questions.
-    finder = Finder(reader, retriever)
-
-    print("pipeline generated  successfully")
-
-    prediction = finder.get_answers(
-        question=question, top_k_retriever=5, top_k_reader=5)
-    answer = []
-    for res in prediction['answers']:
-        answer.append(res['answer'])
-
+    
+    get_answer_trial(question, index)
     # predict n answers
     print("answers generated successfully")
     return render_template('index.html')
@@ -249,4 +221,4 @@ def server_error(e):
                        'result': []})
 
 
-app.run(debug=True, use_reloader=False)
+app.run(debug=True)
